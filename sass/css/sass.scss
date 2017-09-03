@@ -1,0 +1,15 @@
+$font-stack:    Helvetica, sans-serif;
+$primary-color: #333;
+
+body {
+  font: 100% $font-stack;
+  color: $primary-color;
+}
+
+#face {
+	stroke-width: 2px; stroke: #fff;
+}
+#hour, #min, #sec {
+	stroke-width: 1px; fill: #333; stroke: #555;
+}
+#sec { stroke: #f55; }
