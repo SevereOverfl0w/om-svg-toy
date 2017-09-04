@@ -126,8 +126,7 @@
                              :height 10
                              :fill "white"
                              :onClick (fn []
-                                        (js/alert "hi"))}))
-            )
+                                        (js/alert "hi"))})))
           (dom/mask
             #js {:id "available"}
             (for [{:keys [start end k]} [{:start (/ 9 24) :end (/ 11.5 24) :k 1}
