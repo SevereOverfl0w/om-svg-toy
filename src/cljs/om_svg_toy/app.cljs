@@ -156,9 +156,8 @@
                        :width (% 1)
                        :height 10
                        :mask "url(#available)"})
-        (let [canvas-width (some-> (om/get-ref owner "full-bar")
-                                   (.getBBox)
-                                   (.-width))
+        (let [offset-parent (om/get-ref owner "full-bar")
+              canvas-width (some-> offset-parent (.getBBox) (.-width))
               radius 8]
           (for [[k {:keys [start end msg]}] (:busy-time app)]
             (dom/g
@@ -170,11 +169,12 @@
                              :height 10
                              :fill "url(#BusyTime)"})
               (DraggableCore
-                #js {:offsetParent (om/get-ref owner "full-bar")
+                #js {:offsetParent offset-parent
                      :onDrag (fn [evt data]
                                (om/transact! app [:busy-time k :start]
                                              (fn [_]
                                                (/
+                                                ;; TODO: Rather than (- x radius) look at how Draggable does this relative to the cursor start pos
                                                 (max (min (- (.-x data) radius) canvas-width) 0)
                                                 canvas-width))))}
 
