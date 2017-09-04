@@ -156,25 +156,26 @@
                        :width (% 1)
                        :height 10
                        :mask "url(#available)"})
-        (for [[k {:keys [start end msg]}] (:busy-time app)]
-          (dom/g
-            nil
-            (dom/rect #js {:x (% start)
-                           :y 10
-                           :key k
-                           :width (% (- end start))
-                           :height 10
-                           :fill "url(#BusyTime)"})
-            (let [radius 8
-                  canvas-width 500]
+        (let [canvas-width (some-> (om/get-ref owner "full-bar")
+                                   (.getBBox)
+                                   (.-width))
+              radius 8]
+          (for [[k {:keys [start end msg]}] (:busy-time app)]
+            (dom/g
+              nil
+              (dom/rect #js {:x (% start)
+                             :y 10
+                             :key k
+                             :width (% (- end start))
+                             :height 10
+                             :fill "url(#BusyTime)"})
               (DraggableCore
-                #js {:onDrag (fn [evt data]
+                #js {:offsetParent (om/get-ref owner "full-bar")
+                     :onDrag (fn [evt data]
                                (om/transact! app [:busy-time k :start]
                                              (fn [_]
                                                (/
-                                                (max (min (- (.-x data) radius)
-                                                          canvas-width)
-                                                     0)
+                                                (max (min (- (.-x data) radius) canvas-width) 0)
                                                 canvas-width))))}
 
                 (dom/circle #js {:r radius
