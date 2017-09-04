@@ -2,10 +2,16 @@
   (:require
     [om.core :as om :include-macros true]
     [om.dom :as dom :include-macros true]
-    [cljsjs.react-motion]))
+    [cljsjs.react-motion]
+    [cljsjs.react-draggable]))
+
+(enable-console-print!)
 
 (def spring js/ReactMotion.spring)
 (def Motion (js/React.createFactory js/ReactMotion.Motion))
+
+(def Draggable (js/React.createFactory js/ReactDraggable))
+(def DraggableCore (js/React.createFactory js/ReactDraggable.DraggableCore))
 
 (defn date->data [d]
   {:seconds (.getSeconds d)
@@ -139,6 +145,7 @@
                              :height 10
                              :fill "white"}))))
         (dom/rect #js {:fill "lightgrey"
+                       :ref "full-bar"
                        :x 0
                        :y 10
                        :width (% 1)
@@ -149,23 +156,31 @@
                        :width (% 1)
                        :height 10
                        :mask "url(#available)"})
-        (for [{:keys [start end k msg]}
-              [{:start (/ 12 24)
-                :end (/ 13 24)
-                :k "busy-1"
-                :msg "Lunch"}
-               {:start (/ 15 24)
-                :end (/ 17 24)
-                :k "busy-2"
-                :msg "Yoga"}]]
-          (dom/rect #js {:x (% start)
-                         :y 10
-                         :key k
-                         :width (% (- end start))
-                         :height 10
-                         :fill "url(#BusyTime)"
-                         :onMouseEnter (fn []
-                                         (js/alert msg))}))))))
+        (for [[k {:keys [start end msg]}] (:busy-time app)]
+          (dom/g
+            nil
+            (dom/rect #js {:x (% start)
+                           :y 10
+                           :key k
+                           :width (% (- end start))
+                           :height 10
+                           :fill "url(#BusyTime)"})
+            (let [radius 8
+                  canvas-width 500]
+              (DraggableCore
+                #js {:onDrag (fn [evt data]
+                               (om/transact! app [:busy-time k :start]
+                                             (fn [_]
+                                               (/
+                                                (max (min (- (.-x data) radius)
+                                                          canvas-width)
+                                                     0)
+                                                canvas-width))))}
+
+                (dom/circle #js {:r radius
+                                 :cx (% start)
+                                 :cy 15
+                                 :fill "purple"})))))))))
 
 (defn page
   [app owner]
@@ -180,7 +195,13 @@
 (def app-state (atom {:now {:seconds 0
                             :minutes 0
                             :hours 0}
-                      :splat {:path-length 0}}))
+                      :splat {:path-length 0}
+                      :busy-time {"busy-1" {:start (/ 12 24)
+                                            :end (/ 13 24)
+                                            :msg "Lunch"}
+                                  "busy-2" {:start (/ 15 24)
+                                            :end (/ 17 24)
+                                            :msg "Yoga"}}}))
 
 (defn init []
   (om/root page app-state

@@ -16,7 +16,8 @@
                  [binaryage/dirac "1.2.9" :scope "test"]
                  [powerlaces/boot-cljs-devtools "0.2.0" :scope "test"]
 
-                 [cljsjs/react-motion "0.5.0-0"]])
+                 [cljsjs/react-motion "0.5.0-0"]
+                 [cljsjs/react-draggable "2.2.3-0"]])
 
 (require
  '[adzerk.boot-cljs      :refer [cljs]]
