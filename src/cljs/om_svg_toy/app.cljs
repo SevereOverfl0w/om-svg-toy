@@ -116,51 +116,24 @@
             #js {:id "BusyTime"
                  :gradientUnits "userSpaceOnUse"}
             (dom/stop #js {:offset "5%" :stopColor "#d31027"})
-            (dom/stop #js {:offset "95%" :stopColor "#ea384d"}))
-
-          (dom/mask
-            #js {:id "busy"}
-            (for [{:keys [start end k]} [{:start (/ 12 24)
-                                          :end (/ 13 24)
-                                          :k "busy-1"}
-                                         {:start (/ 15 24)
-                                          :end (/ 17 24)
-                                          :k "busy-2"}]]
-              (dom/rect #js {:x (% start)
-                             :y 10
-                             :key k
-                             :width (% (- end start))
-                             :height 10
-                             :fill "white"
-                             :onClick (fn []
-                                        (js/alert "hi"))})))
-          (dom/mask
-            #js {:id "available"}
-            (for [{:keys [start end k]} [{:start (/ 9 24) :end (/ 11.5 24) :k 1}
-                                         {:start (/ 13 24) :end (/ 14 24) :k 2}
-                                         {:start (/ 18 24) :end (/ 19 24) :k 3}]]
-              (dom/rect #js {:x (% start)
-                             :y 10
-                             :key k
-                             :width (% (- end start))
-                             :height 10
-                             :fill "white"}))))
+            (dom/stop #js {:offset "95%" :stopColor "#ea384d"})))
         (dom/rect #js {:fill "lightgrey"
                        :ref "full-bar"
                        :x 0
                        :y 10
                        :width (% 1)
                        :height 10})
-        (dom/rect #js {:fill "url(#ActiveTime)"
-                       :x 0
-                       :y 10
-                       :width (% 1)
-                       :height 10
-                       :mask "url(#available)"})
+        (for [[k {:keys [start end msg]}] (:busy-time app)]
+          (dom/rect #js {:x (% start)
+                         :y 10
+                         :key k
+                         :width (% (- end start))
+                         :height 10
+                         :fill "url(#BusyTime)"}))
         (let [offset-parent (om/get-ref owner "full-bar")
               canvas-width (some-> offset-parent (.getBBox) (.-width))
               radius 8]
-          (for [[k {:keys [start end msg]}] (:busy-time app)]
+          (for [[k {:keys [start end msg]}] (:active-time app)]
             (dom/g
               nil
               (dom/rect #js {:x (% start)
@@ -168,11 +141,11 @@
                              :key k
                              :width (% (- end start))
                              :height 10
-                             :fill "url(#BusyTime)"})
+                             :fill "url(#ActiveTime)"})
               (DraggableCore
                 #js {:offsetParent offset-parent
                      :onDrag (fn [evt data]
-                               (om/transact! app [:busy-time k :start]
+                               (om/transact! app [:active-time k :start]
                                              (fn [start]
                                                (clamp
                                                  0
@@ -209,7 +182,10 @@
                                             :msg "Lunch"}
                                   "busy-2" {:start (/ 15 24)
                                             :end (/ 17 24)
-                                            :msg "Yoga"}}}))
+                                            :msg "Yoga"}}
+                      :active-time {"active-1" {:start (/ 9 24) :end (/ 11.5 24)}
+                                    "active-2" {:start (/ 13 24) :end (/ 14 24)}
+                                    "active-3" {:start (/ 18 24) :end (/ 19 24)}}}))
 
 (defn init []
   (om/root page app-state
