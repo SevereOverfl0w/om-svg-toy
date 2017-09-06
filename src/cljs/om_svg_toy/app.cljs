@@ -6,6 +6,7 @@
     [cljsjs.react-draggable]))
 
 (enable-console-print!)
+(defn clamp [nmin nmax n] (if (< n nmin) nmin (if (> n nmax) nmax n)))
 
 (def spring js/ReactMotion.spring)
 (def Motion (js/React.createFactory js/ReactMotion.Motion))
@@ -172,11 +173,11 @@
                 #js {:offsetParent offset-parent
                      :onDrag (fn [evt data]
                                (om/transact! app [:busy-time k :start]
-                                             (fn [_]
-                                               (/
-                                                ;; TODO: Rather than (- x radius) look at how Draggable does this relative to the cursor start pos
-                                                (max (min (- (.-x data) radius) canvas-width) 0)
-                                                canvas-width))))}
+                                             (fn [start]
+                                               (clamp
+                                                 0
+                                                 1
+                                                 (+ (/ (.-deltaX data) canvas-width) start)))))}
 
                 (dom/circle #js {:r radius
                                  :cx (% start)
@@ -188,7 +189,13 @@
   (reify
     om/IRender
     (render [this]
-      (dom/div nil
+      (dom/div
+        nil
+        (dom/div
+          nil
+          (Draggable
+            #js {:bounds #js {:left 100 :right 100 :top 100 :bottom 100}}
+            (dom/h1 nil "Hello, world")))
         (om/build widget app)
         (om/build splat app)
         (om/build range-slider app)))))

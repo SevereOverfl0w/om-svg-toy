@@ -17,7 +17,7 @@
                  [powerlaces/boot-cljs-devtools "0.2.0" :scope "test"]
 
                  [cljsjs/react-motion "0.5.0-0"]
-                 [cljsjs/react-draggable "2.2.3-0"]])
+                 [cljsjs/react-draggable "3.0.3-0"]])
 
 (require
  '[adzerk.boot-cljs      :refer [cljs]]
