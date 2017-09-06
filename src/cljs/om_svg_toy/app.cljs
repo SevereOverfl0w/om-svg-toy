@@ -132,7 +132,16 @@
                          :fill "url(#BusyTime)"}))
         (let [offset-parent (om/get-ref owner "full-bar")
               canvas-width (some-> offset-parent (.getBBox) (.-width))
-              radius 8]
+              radius 8
+              update-value (fn [x counterpart com data]
+                             (let [new-val
+                                   (clamp
+                                     0
+                                     1
+                                     (+ (/ (.-deltaX data) canvas-width) x))]
+                               (if (com new-val counterpart)
+                                 (throw (ex-info "pseudo-throw for false" {}))
+                                 new-val)))]
           (for [[k {:keys [start end msg]}] (:active-time app)]
             (dom/g
               nil
@@ -145,17 +154,33 @@
               (DraggableCore
                 #js {:offsetParent offset-parent
                      :onDrag (fn [evt data]
-                               (om/transact! app [:active-time k :start]
-                                             (fn [start]
-                                               (clamp
-                                                 0
-                                                 1
-                                                 (+ (/ (.-deltaX data) canvas-width) start)))))}
+                               (try
+                                 (om/transact! app [:active-time k]
+                                               (fn [{:keys [start end] :as t}]
+                                                 (assoc t :start (update-value start end >= data))))
+                                 (catch js/Error _
+                                   false)))}
 
                 (dom/circle #js {:r radius
                                  :cx (% start)
                                  :cy 15
-                                 :fill "purple"})))))))))
+                                 :fill "purple"}))
+              (DraggableCore
+                #js {:offsetParent offset-parent
+                     :onDrag (fn [evt data]
+                               (try
+                                 (om/transact! app [:active-time k]
+                                               (fn [{:keys [start end] :as t}]
+                                                 (assoc t :end
+                                                        (update-value end start <= data))))
+                                 (catch js/Error _
+                                   false)))}
+
+                (dom/circle #js {:r radius
+                                 :cx (% end)
+                                 :cy 15
+                                 :fill "green"}))
+              )))))))
 
 (defn page
   [app owner]
