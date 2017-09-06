@@ -179,8 +179,7 @@
                 (dom/circle #js {:r radius
                                  :cx (% end)
                                  :cy 15
-                                 :fill "green"}))
-              )))))))
+                                 :fill "green"})))))))))
 
 (defn page
   [app owner]
